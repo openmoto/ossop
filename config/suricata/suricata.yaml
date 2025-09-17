@@ -1,0 +1,42 @@
+# This is a minimal configuration for Suricata in Docker.
+# It tells Suricata to monitor the primary network interface (eth0).
+# For more advanced configurations, see the official Suricata documentation.
+
+# Step 1: configure AF_PACKET
+af-packet:
+  - interface: eth0
+    # The default cluster-id is 0, so all threads will load balance packets.
+    # Set cluster-type to 'cluster_flow' for AF_PACKET load balancing.
+    cluster-type: cluster_flow
+    cluster-id: 99
+    # AF_PACKET will not be in promiscuous mode so we only get traffic to and from the interface.
+    # To run in promiscuous mode, uncomment the following line.
+    # promiscuous: yes
+
+# Step 2: configure outputs
+# A line based alerts log with a human-readable format.
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert
+        - http
+        - dns
+        - tls
+        - files
+        - smtp
+        - flow
+        - netflow
+
+# Step 3: configure community-id
+# This adds a field to EVE records that is the same across protocols for the same flow.
+# Useful for correlating events in your SIEM.
+community-id: true
+
+# Step 4: configure default rule paths
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  - suricata.rules
+
