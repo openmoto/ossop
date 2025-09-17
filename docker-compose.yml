@@ -178,7 +178,7 @@ services:
       shuffle-opensearch:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5001/api/v1/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5001/api/v1/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -197,7 +197,7 @@ services:
     depends_on:
       - shuffle-backend
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -279,7 +279,7 @@ services:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5001 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5001 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -323,11 +323,11 @@ services:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider --no-check-certificate https://localhost || exit 1"]
+      test: ["CMD-SHELL", "curl -f -k https://localhost:443 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 120s
 
   suricata:
     image: jasonish/suricata:${SURICATA_VERSION}
@@ -425,7 +425,7 @@ services:
       - "ADMIN_ORG=ORGNAME"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/users/login || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost/users/login || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -471,7 +471,7 @@ services:
       - DD_DEBUG=False
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -492,7 +492,7 @@ services:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:3001 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
