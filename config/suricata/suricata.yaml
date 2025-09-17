@@ -1,3 +1,5 @@
+%YAML 1.1
+---
 # This is a minimal configuration for Suricata in Docker.
 # It tells Suricata to monitor the primary network interface (eth0).
 # For more advanced configurations, see the official Suricata documentation.

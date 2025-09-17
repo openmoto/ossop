@@ -118,7 +118,7 @@ services:
     hostname: ${SHUFFLE_DB_HOSTNAME}
     env_file: .env
     volumes:
-      - ./data/shuffle/shuffle-database:/var/lib/postgresql/data
+      - shuffle_db_data:/var/lib/postgresql/data
     networks:
       - security-stack-net
     restart: unless-stopped
@@ -177,6 +177,12 @@ services:
         condition: service_healthy
       shuffle-opensearch:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5001/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   shuffle-frontend:
     image: ghcr.io/shuffle/shuffle-frontend:${SHUFFLE_VERSION}
@@ -190,6 +196,12 @@ services:
     restart: unless-stopped
     depends_on:
       - shuffle-backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   shuffle-orborus:
     image: ghcr.io/shuffle/shuffle-orborus:${SHUFFLE_VERSION}
@@ -211,7 +223,7 @@ services:
       - POSTGRES_DB=${IRIS_DB_NAME}
       - POSTGRES_PASSWORD=${IRIS_DB_PASSWORD}
     volumes:
-      - ./data/iris-db:/var/lib/postgresql/data
+      - iris_db_data:/var/lib/postgresql/data
     networks:
       - security-stack-net
     restart: unless-stopped
@@ -222,51 +234,56 @@ services:
       retries: 5
       
   iris-web:
-    image: dfir-iris/iris-web:${IRIS_VERSION}
+    image: ghcr.io/dfir-iris/iriswebapp_app:${IRIS_VERSION}
     container_name: ${IRIS_HOSTNAME}
     hostname: ${IRIS_HOSTNAME}
     depends_on:
       iris-db:
         condition: service_healthy
     ports:
-      - "${IRIS_PORT}:8080"
+      - "${IRIS_PORT}:8000"
     environment:
+      - POSTGRES_USER=${IRIS_DB_USER}
+      - POSTGRES_PASSWORD=${IRIS_DB_PASSWORD}
+      - POSTGRES_ADMIN_USER=${IRIS_DB_USER}
+      - POSTGRES_ADMIN_PASSWORD=${IRIS_DB_PASSWORD}
+      - POSTGRES_DB=${IRIS_DB_NAME}
+      - POSTGRES_SERVER=${IRIS_DB_HOSTNAME}
+      - POSTGRES_PORT=5432
       - IRIS_SECRET_KEY=${IRIS_SECRET_KEY}
-      - IRIS_DB_USER=${IRIS_DB_USER}
-      - IRIS_DB_PASSWORD=${IRIS_DB_PASSWORD}
-      - IRIS_DB_HOST=${IRIS_DB_HOSTNAME}
-      - IRIS_DB_NAME=${IRIS_DB_NAME}
-      - IRIS_WEB_LISTEN_ADDR=0.0.0.0
+      - IRIS_SECURITY_PASSWORD_SALT=randomly_generated_salt_change_me
+      - IRIS_UPSTREAM_SERVER=0.0.0.0
+      - IRIS_UPSTREAM_PORT=8000
     networks:
       - security-stack-net
     restart: unless-stopped
+    command: ["./iris-entrypoint.sh", "iriswebapp"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 120s
 
   spiderfoot:
-    image: smicallef/spiderfoot:${SPIDERFOOT_VERSION}
+    build:
+      context: https://github.com/smicallef/spiderfoot.git
+    image: spiderfoot:latest
     container_name: ${SPIDERFOOT_HOSTNAME}
     hostname: ${SPIDERFOOT_HOSTNAME}
     ports:
       - "${SPIDERFOOT_PORT}:5001"
-    environment:
-      - SPIDERFOOT_USERNAME=${SPIDERFOOT_USERNAME}
-      - SPIDERFOOT_PASSWORD=${SPIDERFOOT_PASSWORD}
     volumes:
-      - ./data/spiderfoot:/home/spiderfoot/.spiderfoot:rw
+      - spiderfoot_data:/var/lib/spiderfoot
     networks:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "-u", "${SPIDERFOOT_USERNAME}:${SPIDERFOOT_PASSWORD}", "http://localhost:5001"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5001 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 120s
 
   eramba-db:
     image: mariadb:${ERAMBA_DB_VERSION}
@@ -289,24 +306,24 @@ services:
       retries: 5
 
   eramba-web:
-    image: eramba/eramba_community:latest # Eramba has a unique versioning, latest is standard
+    image: ghcr.io/eramba/eramba:latest
     container_name: ${ERAMBA_HOSTNAME}
     hostname: ${ERAMBA_HOSTNAME}
     depends_on:
       eramba-db:
         condition: service_healthy
     ports:
-      - "${ERAMBA_PORT}:80"
+      - "${ERAMBA_PORT}:443"
     environment:
-      - ERAMBA_DB_HOST=${ERAMBA_DB_HOSTNAME}
-      - ERAMBA_DB_NAME=${ERAMBA_DB_NAME}
-      - ERAMBA_DB_USER=${ERAMBA_DB_USER}
-      - ERAMBA_DB_PASS=${ERAMBA_DB_PASSWORD}
+      - DB_HOST=${ERAMBA_DB_HOSTNAME}
+      - DB_DATABASE=${ERAMBA_DB_NAME}
+      - DB_USERNAME=${ERAMBA_DB_USER}
+      - DB_PASSWORD=${ERAMBA_DB_PASSWORD}
     networks:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health?source=docker"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider --no-check-certificate https://localhost || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -326,20 +343,40 @@ services:
       - ./data/suricata/logs:/var/log/suricata:rw
     command: suricata -c /etc/suricata/suricata.yaml -i eth0
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /var/log/suricata/eve.json && pgrep suricata"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   misp-db:
-    image: postgres:${POSTGRES_VERSION}
+    image: mariadb:10.11
     container_name: ${MISP_DB_HOSTNAME}
     hostname: ${MISP_DB_HOSTNAME}
     environment:
-      - POSTGRES_PASSWORD=${MISP_DB_ROOT_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MISP_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MISP_DB_NAME}
+      - MYSQL_USER=${MISP_DB_USER}
+      - MYSQL_PASSWORD=${MISP_DB_PASSWORD}
+    command: >
+      --innodb-buffer-pool-size=1024M
+      --innodb-change-buffering=none
+      --innodb-io-capacity=1000
+      --innodb-io-capacity-max=2000
+      --innodb-log-file-size=600M
+      --innodb-read-io-threads=16
+      --innodb-stats-persistent=ON
+      --innodb-write-io-threads=4
     volumes:
-      - ./data/misp/db:/var/lib/postgresql/data
+      - misp_db_data:/var/lib/mysql
     networks:
       - security-stack-net
     restart: unless-stopped
+    cap_add:
+      - SYS_NICE
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: ["CMD", "mysqladmin", "ping", "--user=$$MYSQL_USER", "--password=$$MYSQL_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -348,17 +385,18 @@ services:
     image: redis:7.2
     container_name: ${MISP_REDIS_HOSTNAME}
     hostname: ${MISP_REDIS_HOSTNAME}
+    command: --requirepass '${MISP_REDIS_PASSWORD}'
     networks:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${MISP_REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   misp-web:
-    image: coolacid/misp-docker:${MISP_VERSION}
+    image: ghcr.io/misp/misp-docker/misp-core:latest
     container_name: ${MISP_HOSTNAME}
     hostname: ${MISP_HOSTNAME}
     ports:
@@ -371,15 +409,23 @@ services:
       misp-redis:
         condition: service_healthy
     environment:
-      - "DB_HOST=${MISP_DB_HOSTNAME}"
-      - "DB_DATABASE=${MISP_DB_NAME}"
-      - "DB_USERNAME=${MISP_DB_USER}"
-      - "DB_PASSWORD=${MISP_DB_PASSWORD}"
+      - "BASE_URL=http://${HOSTNAME}:${MISP_PORT}"
+      - "DISABLE_SSL_REDIRECT=true"
+      - "DISABLE_IPV6=true"
+      - "MYSQL_HOST=${MISP_DB_HOSTNAME}"
+      - "MYSQL_PORT=3306"
+      - "MYSQL_USER=${MISP_DB_USER}"
+      - "MYSQL_PASSWORD=${MISP_DB_PASSWORD}"
+      - "MYSQL_DATABASE=${MISP_DB_NAME}"
       - "REDIS_HOST=${MISP_REDIS_HOSTNAME}"
-      - "INIT_BASEURL=http://${HOSTNAME}:${MISP_PORT}"
+      - "REDIS_PORT=6379"
+      - "REDIS_PASSWORD=${MISP_REDIS_PASSWORD}"
+      - "ADMIN_EMAIL=admin@admin.test"
+      - "ADMIN_PASSWORD=admin"
+      - "ADMIN_ORG=ORGNAME"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/users/login"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/users/login || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -394,7 +440,7 @@ services:
       - POSTGRES_DB=${DEFECTDOJO_DB_NAME}
       - POSTGRES_PASSWORD=${DEFECTDOJO_DB_PASSWORD}
     volumes:
-      - ./data/defectdojo-db:/var/lib/postgresql/data
+      - defectdojo_db_data:/var/lib/postgresql/data
     networks:
       - security-stack-net
     restart: unless-stopped
@@ -405,7 +451,7 @@ services:
       retries: 5
 
   defectdojo-app:
-    image: defectdojo/defectdojo-django:${DEFECTDOJO_VERSION}
+    image: defectdojo/defectdojo-django:latest
     container_name: ${DEFECTDOJO_HOSTNAME}
     hostname: ${DEFECTDOJO_HOSTNAME}
     ports:
@@ -418,17 +464,55 @@ services:
     environment:
       - DD_DATABASE_URL=postgresql://${DEFECTDOJO_DB_USER}:${DEFECTDOJO_DB_PASSWORD}@${DEFECTDOJO_DB_HOSTNAME}:5432/${DEFECTDOJO_DB_NAME}
       - DD_SECRET_KEY=${DEFECTDOJO_SECRET_KEY}
-      - DD_CELERY_BROKER_URL=redis://localhost:6379/1 # Note: Requires a separate Redis for celery tasks in a full production setup.
-      - DD_CELERY_BROKER_TYPE=redis
+      - DD_CELERY_BROKER_URL=redis://${MISP_REDIS_HOSTNAME}:6379/1
+      - DD_ADMIN_USER=admin
+      - DD_ADMIN_MAIL=admin@defectdojo.local
+      - DD_ALLOWED_HOSTS=localhost,127.0.0.1,${DEFECTDOJO_HOSTNAME}
+      - DD_DEBUG=False
     restart: unless-stopped
-    command: >
-      bash -c "
-      ./manage.py migrate && 
-      ./manage.py loaddata initial_data && 
-      ./manage.py create_inline_wizards &&
-      ./manage.py runserver 0.0.0.0:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    hostname: uptime-kuma
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - UPTIME_KUMA_DISABLE_FRAME_SAMEORIGIN=true
+    networks:
+      - security-stack-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
 networks:
   security-stack-net:
     driver: bridge
+
+volumes:
+  shuffle_db_data:
+    driver: local
+  iris_db_data:
+    driver: local
+  misp_db_data:
+    driver: local
+  defectdojo_db_data:
+    driver: local
+  spiderfoot_data:
+    driver: local
+  uptime_kuma_data:
+    driver: local
 
