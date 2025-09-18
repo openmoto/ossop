@@ -1,160 +1,70 @@
-# 📊 Uptime Kuma Monitoring Setup - Quick Reference
+# 📊 Monitoring Setup Guide
 
-## 🚀 Quick Setup Steps
+This guide helps you set up monitoring dashboards to see what's happening in your security stack.
 
-### 1. Access Uptime Kuma
-- **URL:** http://localhost:3001
-- **First Time:** Create admin account
-- **Login:** Use your created credentials
+## Quick Setup
 
-### 2. Add Monitors (Copy-Paste Ready)
-
-Click **"+ Add New Monitor"** and use these settings:
-
-#### Core SIEM Services
-```
-Monitor Type: HTTP(s)
-Friendly Name: SIEM Dashboard
-URL: http://opensearch-dashboards:5601
-Heartbeat Interval: 60 seconds
-```
-
-```
-Monitor Type: HTTP(s)
-Friendly Name: OpenSearch API
-URL: http://opensearch:9200/_cluster/health
-Heartbeat Interval: 60 seconds
-```
-
-#### Security Orchestration (SOAR)
-```
-Monitor Type: HTTP(s)
-Friendly Name: SOAR Frontend
-URL: http://shuffle-frontend:80
-Heartbeat Interval: 60 seconds
-```
-
-```
-Monitor Type: HTTP(s)
-Friendly Name: SOAR Backend API
-URL: http://shuffle-backend:5001/api/v1/health
-Heartbeat Interval: 60 seconds
-```
-
-#### Case Management & Intelligence
-```
-Monitor Type: HTTP(s)
-Friendly Name: IRIS Case Management
-URL: http://iris-web:8000
-Heartbeat Interval: 60 seconds
-```
-
-```
-Monitor Type: HTTP(s)
-Friendly Name: MISP Threat Intelligence
-URL: http://misp-web:80
-Heartbeat Interval: 60 seconds
-```
-
-#### OSINT & Vulnerability Management
-```
-Monitor Type: HTTP(s)
-Friendly Name: SpiderFoot OSINT
-URL: http://spiderfoot:5001
-Heartbeat Interval: 60 seconds
-```
-
-```
-Monitor Type: HTTP(s)
-Friendly Name: DefectDojo Vulnerability Mgmt
-URL: http://defectdojo-app:8080
-Heartbeat Interval: 60 seconds
-```
-
-#### GRC Platform
-```
-Monitor Type: HTTP(s)
-Friendly Name: Eramba GRC Platform
-URL: https://eramba-web:443
-Heartbeat Interval: 60 seconds
-Accept Invalid SSL: Yes (self-signed certificate)
-```
-
-#### Network Monitoring
-```
-Monitor Type: TCP Port
-Friendly Name: Wazuh Manager API
-Hostname: wazuh-manager
-Port: 55000
-Heartbeat Interval: 60 seconds
-```
-
-## 🔧 Troubleshooting
-
-### Monitor Shows "Down"
-1. **Check service status:**
+1. **Start OSSOP** (if not already running):
    ```bash
-   docker compose ps service-name
+   docker compose up -d
    ```
 
-2. **Test connectivity:**
-   ```bash
-   docker exec uptime-kuma wget -qO- http://service-name:port
-   ```
+2. **Access Uptime Kuma** at http://localhost:3001
+   - Create an admin account
+   - Add monitors for your services using the URLs from the main README
 
-3. **Check logs:**
-   ```bash
-   docker logs service-name --tail 10
-   ```
+3. **Access OpenSearch Dashboards** at http://localhost:5601
+   - Login: admin / admin
+   - Go to "Discover" to see security logs
+   - Create dashboards for your security data
 
-### Common Fixes
-- ✅ **Use internal Docker names** (e.g., `iris-web:8000`)
-- ❌ **Don't use localhost** (e.g., `localhost:8080`)
-- 🔧 **Use internal ports** (different from external access)
-- 🔒 **Use HTTPS only for Eramba** (all others use HTTP)
+## What Gets Monitored
 
-## 📧 Set Up Notifications
+- **Service Health**: All 21 services are monitored for uptime
+- **Security Logs**: Wazuh and Suricata logs are collected
+- **System Metrics**: Container resource usage
+- **Network Traffic**: Intrusion detection alerts
 
-### Email Notifications
-1. Go to **Settings** → **Notifications**
-2. Click **"Add Notification"**
-3. Select **"Email (SMTP)"**
-4. Configure your SMTP settings
-5. Test the notification
+## Creating Custom Dashboards
 
-### Slack Integration
-1. Create Slack webhook URL
-2. Add **"Slack"** notification type
-3. Paste webhook URL
-4. Test notification
+### In OpenSearch Dashboards:
+1. Go to "Management" → "Index Patterns"
+2. Create patterns for:
+   - `wazuh-alerts-*` (security alerts)
+   - `suricata-events-*` (network events)
+3. Go to "Visualize" to create charts
+4. Combine charts into dashboards
 
-### Teams Integration
-1. Create Teams webhook
-2. Add **"Microsoft Teams"** notification type
-3. Configure webhook URL
+### In Uptime Kuma:
+1. Click "Add New Monitor"
+2. Choose "HTTP(s)" type
+3. Enter the service URL
+4. Set check interval (default: 60 seconds)
+5. Add notification methods (email, Slack, etc.)
 
-## 🎯 Expected Results
+## Troubleshooting
 
-After setup, you should see:
-- **Green checkmarks** for healthy services
-- **Response times** (typically 10-100ms for internal services)
-- **Uptime percentages** (should be 99%+ for stable services)
-- **Alert notifications** when services go down
+**No logs showing up?**
+- Check Fluent Bit is running: `docker compose ps fluent-bit`
+- View Fluent Bit logs: `docker compose logs fluent-bit`
 
-## 📊 Service Health Status
+**Dashboards not loading?**
+- Wait 2-3 minutes for services to fully start
+- Check OpenSearch is healthy: `docker compose ps opensearch`
 
-| Service | Expected Status | Typical Response Time |
-|---------|----------------|---------------------|
-| SIEM Dashboard | 🟢 UP | 20-50ms |
-| SOAR Frontend | 🟢 UP | 10-30ms |
-| IRIS Case Mgmt | 🟢 UP | 15-40ms |
-| MISP Threat Intel | 🟢 UP | 25-60ms |
-| SpiderFoot | 🟢 UP | 30-80ms |
-| OpenSearch API | 🟢 UP | 5-15ms |
-| DefectDojo | ⚠️ May show issues | Variable |
-| Eramba GRC | ⚠️ May show issues | Variable |
-| Wazuh Manager | 🟢 UP | 5-20ms |
+**Monitors failing?**
+- Verify the service URLs are correct
+- Check if the services are actually running
+- Look at the specific error messages in Uptime Kuma
 
----
+## Advanced Configuration
 
-**Need Help?** Check the main README.md for detailed troubleshooting steps.
+For advanced monitoring setups, check the configuration files in:
+- `config/fluent-bit/` - Log processing configuration
+- `scripts/setup-monitoring.sh` - Automated setup script
+
+## Need Help?
+
+- Check the main README for basic troubleshooting
+- View service logs: `docker compose logs [service-name]`
+- Open an issue on GitHub with details about your problem

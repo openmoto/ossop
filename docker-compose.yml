@@ -500,7 +500,9 @@ services:
       - ./scripts/defectdojo-init.sh:/init.sh:ro
       - defectdojo_static:/app/static
       - defectdojo_media:/app/media
-    command: ["sh", "-c", "chmod +x /init.sh && /init.sh && exec /entrypoint-uwsgi.sh"]
+    user: root
+    entrypoint: ["sh", "-c"]
+    command: ["bash /init.sh && exec /entrypoint-uwsgi.sh"]
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8081\")' || exit 1"]
