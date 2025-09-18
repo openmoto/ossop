@@ -74,12 +74,13 @@ services:
       opensearch:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:2020/api/v1/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # Health check disabled - service works but minimal image lacks health check tools
+    # healthcheck:
+    #   test: ["CMD-SHELL", "nc -z localhost 2020 || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
 
   wazuh-manager:
     image: wazuh/wazuh-manager:${WAZUH_MANAGER_VERSION}
