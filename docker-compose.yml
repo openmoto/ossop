@@ -9,10 +9,9 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "OPENSEARCH_JAVA_OPTS=-Xms${OPENSEARCH_JVM_HEAP} -Xmx${OPENSEARCH_JVM_HEAP}"
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - TZ=${TZ}
       - network.host=0.0.0.0
-      - "plugins.security.ssl.http.enabled=false"
+      - "plugins.security.disabled=true"
     ulimits:
       memlock: { soft: -1, hard: -1 }
       nofile: { soft: 65536, hard: 65536 }
@@ -38,8 +37,9 @@ services:
     ports:
       - "${OPENSEARCH_DASHBOARDS_PORT}:5601"
     environment:
-      - OPENSEARCH_HOSTS=http://${OPENSEARCH_HOSTNAME}:${OPENSEARCH_PORT_API}
       - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    volumes:
+      - ./config/opensearch-dashboards/opensearch_dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
     networks:
       - security-stack-net
     depends_on:
@@ -543,6 +543,7 @@ services:
     hostname: autokuma
     environment:
       - AUTOKUMA__KUMA__URL=http://uptime-kuma:3001
+      - AUTOKUMA__KUMA__API_TOKEN=${UPTIME_KUMA_API_KEY}
       - AUTOKUMA__TAG_NAME=OSSOP-AutoMonitor
       - AUTOKUMA__TAG_COLOR=#42C0FB
       - AUTOKUMA__STATIC_MONITORS=/monitors

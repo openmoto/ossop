@@ -41,18 +41,23 @@ Once running, access these tools in your web browser:
 
 | Tool | What It Does | URL | Login |
 |------|--------------|-----|-------|
-| **OpenSearch Dashboards** | Main security dashboard | http://localhost:5601 | admin / admin |
-| **Uptime Kuma** | Monitor all services | http://localhost:3001 | Setup required* |
-| **DefectDojo** | Track security issues | http://localhost:8083 | admin / admin |
+| **OpenSearch Dashboards** | Main security dashboard | http://localhost:5601 | No login required |
+| **Uptime Kuma** | Monitor all services | http://localhost:3001 | Create account on first visit |
+| **DefectDojo** | Track security issues | http://localhost:8083 | From .env file (default: admin / admin) |
 | **MISP** | Threat intelligence | http://localhost:8082 | admin@admin.test / admin |
 | **Shuffle** | Automate responses | http://localhost:5001 | admin / admin |
-| **IRIS** | Incident management | http://localhost:8080 | administrator / password |
+| **IRIS** | Incident management | http://localhost:8080 | See Login information section |
 | **SpiderFoot** | Gather intelligence | http://localhost:5002 | admin / admin |
 | **Eramba** | Compliance tracking | http://localhost:8081 | admin / admin |
 
-> **💡 Tip:** Bookmark these URLs for easy access to your security tools!
+### 🔑 Login Information
 
-> **\*Uptime Kuma Setup:** On first visit, create an admin account. All service monitors will be created automatically afterward!
+- **Fixed Credentials**: MISP, Shuffle, SpiderFoot, and Eramba use the default usernames/passwords shown above
+- **From .env file**: DefectDojo uses credentials from your `.env` file (defaults to admin/admin if not set)
+- **Generated at startup**: IRIS generates a random password shown in logs - run `docker logs iris-web` to see it, it shold be in the format "You can now login with user 'administrator' and password >>> yourpassword <<< on None"
+- **First-time setup**: Uptime Kuma requires you to create an admin account on first visit
+
+> **💡 Tip:** Bookmark these URLs for easy access to your security tools!
 
 ---
 
