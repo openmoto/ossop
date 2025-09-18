@@ -31,7 +31,7 @@ docker compose up -d
 
 **That's it!** Wait 2-3 minutes for everything to start, then access your tools.
 
-> **🎯 Pro Tip:** All services are automatically monitored! Check http://localhost:3001 to see real-time status of all your security tools.
+> **🎯 Pro Tip:** All services are automatically monitored! After setting up Uptime Kuma (first visit to http://localhost:3001), all your security tools will be monitored automatically.
 
 ---
 
@@ -42,7 +42,7 @@ Once running, access these tools in your web browser:
 | Tool | What It Does | URL | Login |
 |------|--------------|-----|-------|
 | **OpenSearch Dashboards** | Main security dashboard | http://localhost:5601 | admin / admin |
-| **Uptime Kuma** | Monitor all services | http://localhost:3001 | Auto-configured |
+| **Uptime Kuma** | Monitor all services | http://localhost:3001 | Setup required* |
 | **DefectDojo** | Track security issues | http://localhost:8083 | admin / admin |
 | **MISP** | Threat intelligence | http://localhost:8082 | admin@admin.test / admin |
 | **Shuffle** | Automate responses | http://localhost:5001 | admin / admin |
@@ -51,6 +51,8 @@ Once running, access these tools in your web browser:
 | **Eramba** | Compliance tracking | http://localhost:8081 | admin / admin |
 
 > **💡 Tip:** Bookmark these URLs for easy access to your security tools!
+
+> **\*Uptime Kuma Setup:** On first visit, create an admin account. All service monitors will be created automatically afterward!
 
 ---
 
