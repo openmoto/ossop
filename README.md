@@ -17,7 +17,7 @@ cd ossop
 ### Step 2: Set Up Your Passwords
 ```bash
 # Copy the example settings file
-cp env.example .env
+cp .env.example .env
 
 # Edit .env with your preferred passwords (optional - defaults work fine)
 notepad .env  # Windows
@@ -154,7 +154,7 @@ docker compose up -d
 ```
 ossop/
 ├── docker-compose.yml      # Main configuration
-├── env.example            # Password settings template
+├── .env.example           # Password settings template
 ├── .env                   # Your actual passwords (create this)
 ├── config/               # Service configurations
 ├── scripts/              # Automation scripts
