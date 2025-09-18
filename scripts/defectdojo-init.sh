@@ -21,7 +21,9 @@ if [ "${DD_INITIALIZE}" = "true" ]; then
     echo "📁 Collecting static files..."
     # Ensure static directory exists and has proper permissions
     mkdir -p /app/static
-    chown -R defectdojo:defectdojo /app/static
+    # Try to fix permissions, ignore errors if not root
+    chown -R defectdojo:defectdojo /app/static 2>/dev/null || true
+    chmod -R 755 /app/static 2>/dev/null || true
     python manage.py collectstatic --noinput --clear
 
     echo "👤 Creating superuser..."
