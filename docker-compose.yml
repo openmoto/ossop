@@ -46,6 +46,8 @@ services:
       opensearch:
         condition: service_healthy
     restart: unless-stopped
+    labels:
+      - "kuma.__web={\"name\":\"OpenSearch Dashboards\",\"url\":\"http://localhost:5601\"}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
       interval: 30s
@@ -472,6 +474,8 @@ services:
       - defectdojo_static:/app/static:ro
       - defectdojo_media:/app/media:ro
     restart: unless-stopped
+    labels:
+      - "kuma.__web={\"name\":\"DefectDojo\",\"url\":\"http://localhost:8083\"}"
 
   uwsgi:
     image: defectdojo/defectdojo-django:latest
@@ -519,15 +523,38 @@ services:
       - "${UPTIME_KUMA_PORT}:3001"
     volumes:
       - uptime_kuma_data:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - UPTIME_KUMA_DISABLE_FRAME_SAMEORIGIN=true
     networks:
       - security-stack-net
     restart: unless-stopped
-    # Health check disabled - service works but health check is unreliable
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -f http://localhost:3001 || exit 1"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "kuma.__web={\"name\":\"Uptime Kuma\",\"url\":\"http://localhost:3001\"}"
+
+  autokuma:
+    image: ghcr.io/bigboot/autokuma:latest
+    container_name: autokuma
+    hostname: autokuma
+    environment:
+      - AUTOKUMA__KUMA__URL=http://uptime-kuma:3001
+      - AUTOKUMA__TAG_NAME=OSSOP-AutoMonitor
+      - AUTOKUMA__TAG_COLOR=#42C0FB
+      - AUTOKUMA__STATIC_MONITORS=/monitors
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/autokuma:/monitors:ro
+    networks:
+      - security-stack-net
+    depends_on:
+      uptime-kuma:
+        condition: service_healthy
+    restart: unless-stopped
     #   interval: 30s
     #   timeout: 10s
     #   retries: 5

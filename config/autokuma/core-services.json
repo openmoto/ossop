@@ -1,0 +1,57 @@
+[
+  {
+    "name": "MISP Threat Intelligence",
+    "type": "http",
+    "url": "http://localhost:8082",
+    "tag_names": [
+      {
+        "name": "OSSOP-Core",
+        "value": "Threat Intelligence"
+      }
+    ]
+  },
+  {
+    "name": "Shuffle SOAR Platform",
+    "type": "http", 
+    "url": "http://localhost:5001",
+    "tag_names": [
+      {
+        "name": "OSSOP-Core",
+        "value": "SOAR"
+      }
+    ]
+  },
+  {
+    "name": "IRIS Case Management",
+    "type": "http",
+    "url": "http://localhost:8080", 
+    "tag_names": [
+      {
+        "name": "OSSOP-Core",
+        "value": "Case Management"
+      }
+    ]
+  },
+  {
+    "name": "SpiderFoot OSINT",
+    "type": "http",
+    "url": "http://localhost:5002",
+    "tag_names": [
+      {
+        "name": "OSSOP-Core", 
+        "value": "OSINT"
+      }
+    ]
+  },
+  {
+    "name": "Eramba GRC",
+    "type": "http",
+    "url": "http://localhost:8081",
+    "tag_names": [
+      {
+        "name": "OSSOP-Core",
+        "value": "GRC"
+      }
+    ]
+  }
+]
