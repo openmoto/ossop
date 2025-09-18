@@ -73,7 +73,7 @@ Login: admin / StrongPassword123!
 ```
 
 **First Steps:**
-1. Create index patterns: `filebeat-*`, `wazuh-alerts-*`, `suricata-*`
+1. Create index patterns: `wazuh-alerts-*`, `suricata-events-*`
 2. Import pre-built dashboards for security monitoring
 3. Configure alerting rules for critical events
 4. Set up data retention policies
@@ -265,13 +265,14 @@ All services are fully operational with the following status:
 | **Eramba** | ✅ Healthy | :8081 | GRC platform |
 | **SpiderFoot** | ✅ Healthy | :5002 | OSINT platform |
 | **Suricata** | ✅ Running | Internal | Network IDS active |
-| **Filebeat** | ✅ Starting | Internal | Log shipping (auth config needed) |
+| **Fluent Bit** | ✅ Healthy | :2020 | Log shipping with native OpenSearch support |
 | **Uptime Kuma** | ✅ Working | :3001 | Service monitoring |
 
 **Recent Fixes & Improvements:**
+- ✅ **Fluent Bit Migration**: Replaced Filebeat with Fluent Bit for native OpenSearch compatibility
 - ✅ **DefectDojo**: Added nginx container for proper static file serving - UI now fully styled
 - ✅ **Shuffle Database**: Fixed PostgreSQL environment variables and initialization  
-- ✅ **Filebeat**: Resolved permission issues with `-strict.perms=false` flag
+- ✅ **Log Shipping**: Resolved Elasticsearch `_license` compatibility issues with OpenSearch
 - ✅ **Port Configuration**: All ports now configurable via environment variables
 - ✅ **Auto-Initialization**: DefectDojo automatically runs migrations and creates admin user
 
