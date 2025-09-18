@@ -7,24 +7,25 @@ set -e
 
 echo "🚀 DefectDojo Initialization Starting..."
 
-# Wait for database to be ready
-echo "⏳ Waiting for database connection..."
-until python manage.py migrate --check 2>/dev/null; do
-  echo "Waiting for database..."
-  sleep 2
-done
+# Only run initialization if DD_INITIALIZE is true
+if [ "${DD_INITIALIZE}" = "true" ]; then
+    echo "⏳ Waiting for database connection..."
+    until python manage.py migrate --check 2>/dev/null; do
+        echo "Waiting for database..."
+        sleep 2
+    done
 
-# Run database migrations
-echo "📊 Running database migrations..."
-python manage.py migrate --noinput
+    echo "📊 Running database migrations..."
+    python manage.py migrate --noinput
 
-# Collect static files
-echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput --clear
+    echo "📁 Collecting static files..."
+    # Ensure static directory exists and has proper permissions
+    mkdir -p /app/static
+    chown -R defectdojo:defectdojo /app/static
+    python manage.py collectstatic --noinput --clear
 
-# Create superuser if it doesn't exist
-echo "👤 Creating superuser..."
-python manage.py shell << EOF
+    echo "👤 Creating superuser..."
+    python manage.py shell << EOF
 import os
 from django.contrib.auth.models import User
 
@@ -39,4 +40,7 @@ else:
     print(f"ℹ️  Superuser '{username}' already exists")
 EOF
 
-echo "✅ DefectDojo initialization completed!"
+    echo "✅ DefectDojo initialization completed!"
+else
+    echo "ℹ️  DD_INITIALIZE is not true, skipping initialization"
+fi

@@ -474,6 +474,9 @@ services:
       - DD_ADMIN_PASSWORD=${DEFECTDOJO_ADMIN_PASSWORD:-admin}
       - DD_ALLOWED_HOSTS=localhost,127.0.0.1,${DEFECTDOJO_HOSTNAME}
       - DD_DEBUG=False
+      - DD_INITIALIZE=true
+      - DD_STATIC_ROOT=/app/static
+      - DD_MEDIA_ROOT=/app/media
     volumes:
       - ./scripts/defectdojo-init.sh:/init.sh:ro
       - defectdojo_static:/app/static
