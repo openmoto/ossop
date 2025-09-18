@@ -60,6 +60,7 @@ services:
     environment:
       - OPENSEARCH_HOSTNAME=${OPENSEARCH_HOSTNAME}
       - OPENSEARCH_PORT_API=${OPENSEARCH_PORT_API}
+      - OPENSEARCH_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     volumes:
       - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - ./data/wazuh/logs/alerts:/var/log/wazuh-alerts:ro

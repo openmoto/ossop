@@ -46,6 +46,9 @@ processors:
 output.elasticsearch:
   # The 'hosts' value is dynamically set by an environment variable from docker-compose.yml
   hosts: ["http://${OPENSEARCH_HOSTNAME}:${OPENSEARCH_PORT_API}"] 
+  # OpenSearch authentication credentials
+  username: "admin"
+  password: "StrongPassword123!"
   # This tells Filebeat how to name the daily indices in OpenSearch.
   index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
 
