@@ -53,33 +53,32 @@ services:
       retries: 5
       start_period: 60s
 
-  filebeat:
-    image: docker.elastic.co/beats/filebeat-oss:${FILEBEAT_OSS_VERSION}
-    container_name: filebeat
-    user: root
+  fluent-bit:
+    image: fluent/fluent-bit:3.1.9
+    container_name: fluent-bit
     environment:
       - OPENSEARCH_HOSTNAME=${OPENSEARCH_HOSTNAME}
       - OPENSEARCH_PORT_API=${OPENSEARCH_PORT_API}
-      - OPENSEARCH_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - HOSTNAME=${HOSTNAME}
     volumes:
-      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./config/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./config/fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
       - ./data/wazuh/logs/alerts:/var/log/wazuh-alerts:ro
       - ./data/suricata/logs:/var/log/suricata:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./data/filebeat:/usr/share/filebeat/data:rw
+      - fluent_bit_db:/fluent-bit/db
+    ports:
+      - "2020:2020"  # HTTP monitoring port
     networks:
       - security-stack-net
     depends_on:
       opensearch:
         condition: service_healthy
-    command: ["filebeat", "-e", "-strict.perms=false"]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "filebeat test config"]
+      test: ["CMD-SHELL", "curl -f http://localhost:2020/api/v1/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 60s
 
   wazuh-manager:
@@ -556,5 +555,7 @@ volumes:
   defectdojo_static:
     driver: local
   defectdojo_media:
+    driver: local
+  fluent_bit_db:
     driver: local
 
