@@ -72,7 +72,7 @@ services:
     depends_on:
       opensearch:
         condition: service_healthy
-    command: sh -c "sleep 15 && filebeat -e"
+    command: ["filebeat", "-e", "-strict.perms=false"]
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "filebeat test config"]
