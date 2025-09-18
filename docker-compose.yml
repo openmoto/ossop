@@ -116,14 +116,17 @@ services:
     image: postgres:${POSTGRES_VERSION}
     container_name: ${SHUFFLE_DB_HOSTNAME}
     hostname: ${SHUFFLE_DB_HOSTNAME}
-    env_file: .env
+    environment:
+      - POSTGRES_USER=${SHUFFLE_DB_USER}
+      - POSTGRES_PASSWORD=${SHUFFLE_DB_PASSWORD}
+      - POSTGRES_DB=${SHUFFLE_DB_NAME}
     volumes:
       - shuffle_db_data:/var/lib/postgresql/data
     networks:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U ${SHUFFLE_DB_USER} -d ${SHUFFLE_DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
