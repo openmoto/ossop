@@ -457,12 +457,27 @@ services:
       timeout: 5s
       retries: 5
 
-  defectdojo-app:
-    image: defectdojo/defectdojo-django:latest
-    container_name: ${DEFECTDOJO_HOSTNAME}
-    hostname: ${DEFECTDOJO_HOSTNAME}
+  nginx:
+    image: defectdojo/defectdojo-nginx:latest
+    container_name: defectdojo-nginx
+    hostname: nginx
     ports:
-      - "${DEFECTDOJO_PORT}:8081"
+      - "${DEFECTDOJO_PORT}:8080"
+    networks:
+      - security-stack-net
+    depends_on:
+      - uwsgi
+    volumes:
+      - defectdojo_static:/app/static:ro
+      - defectdojo_media:/app/media:ro
+    restart: unless-stopped
+
+  uwsgi:
+    image: defectdojo/defectdojo-django:latest
+    container_name: defectdojo-app
+    hostname: uwsgi
+    expose:
+      - "3031"
     networks:
       - security-stack-net
     depends_on:
@@ -483,6 +498,7 @@ services:
     volumes:
       - ./scripts/defectdojo-init.sh:/init.sh:ro
       - defectdojo_static:/app/static
+      - defectdojo_media:/app/media
     command: >
       sh -c "
         chmod +x /init.sh &&
@@ -537,5 +553,7 @@ volumes:
   uptime_kuma_data:
     driver: local
   defectdojo_static:
+    driver: local
+  defectdojo_media:
     driver: local
 
