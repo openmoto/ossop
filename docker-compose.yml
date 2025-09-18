@@ -469,10 +469,20 @@ services:
       - DD_DATABASE_URL=postgresql://${DEFECTDOJO_DB_USER}:${DEFECTDOJO_DB_PASSWORD}@${DEFECTDOJO_DB_HOSTNAME}:5432/${DEFECTDOJO_DB_NAME}
       - DD_SECRET_KEY=${DEFECTDOJO_SECRET_KEY}
       - DD_CELERY_BROKER_URL=redis://${MISP_REDIS_HOSTNAME}:6379/1
-      - DD_ADMIN_USER=admin
-      - DD_ADMIN_MAIL=admin@defectdojo.local
+      - DD_ADMIN_USER=${DEFECTDOJO_ADMIN_USER:-admin}
+      - DD_ADMIN_MAIL=${DEFECTDOJO_ADMIN_EMAIL:-admin@defectdojo.local}
+      - DD_ADMIN_PASSWORD=${DEFECTDOJO_ADMIN_PASSWORD:-admin}
       - DD_ALLOWED_HOSTS=localhost,127.0.0.1,${DEFECTDOJO_HOSTNAME}
       - DD_DEBUG=False
+    volumes:
+      - ./scripts/defectdojo-init.sh:/init.sh:ro
+      - defectdojo_static:/app/static
+    command: >
+      sh -c "
+        chmod +x /init.sh &&
+        /init.sh &&
+        exec /entrypoint-uwsgi.sh
+      "
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8081\")' || exit 1"]
@@ -519,5 +529,7 @@ volumes:
   spiderfoot_data:
     driver: local
   uptime_kuma_data:
+    driver: local
+  defectdojo_static:
     driver: local
 
