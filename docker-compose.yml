@@ -281,7 +281,7 @@ services:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5001 || exit 1"]
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:5001\")' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -315,7 +315,7 @@ services:
       eramba-db:
         condition: service_healthy
     ports:
-      - "${ERAMBA_PORT}:443"
+      - "${ERAMBA_PORT}:80"
     environment:
       - DB_HOST=${ERAMBA_DB_HOSTNAME}
       - DB_DATABASE=${ERAMBA_DB_NAME}
@@ -325,11 +325,11 @@ services:
       - security-stack-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -k https://localhost:443 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 180s
+      start_period: 120s
 
   suricata:
     image: jasonish/suricata:${SURICATA_VERSION}
@@ -459,7 +459,7 @@ services:
     container_name: ${DEFECTDOJO_HOSTNAME}
     hostname: ${DEFECTDOJO_HOSTNAME}
     ports:
-      - "${DEFECTDOJO_PORT}:8080"
+      - "${DEFECTDOJO_PORT}:8081"
     networks:
       - security-stack-net
     depends_on:
@@ -475,11 +475,11 @@ services:
       - DD_DEBUG=False
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1"]
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8081\")' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 120s
+      start_period: 180s
 
   uptime-kuma:
     image: louislam/uptime-kuma:1
