@@ -543,28 +543,6 @@
     labels:
       - "kuma.__web={\"name\":\"Uptime Kuma\",\"url\":\"http://localhost:3001\"}"
 
-  autokuma:
-    image: ghcr.io/bigboot/autokuma:latest
-    container_name: autokuma
-    hostname: autokuma
-    environment:
-      - AUTOKUMA__KUMA__URL=http://uptime-kuma:3001
-      - AUTOKUMA__KUMA__API_TOKEN=${UPTIME_KUMA_API_KEY}
-      - AUTOKUMA__TAG_NAME=OSSOP-AutoMonitor
-      - AUTOKUMA__TAG_COLOR=#42C0FB
-      - AUTOKUMA__STATIC_MONITORS=/monitors
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/autokuma:/monitors:ro
-    networks:
-      - security-stack-net
-    depends_on:
-      - uptime-kuma
-    restart: unless-stopped
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 5
-    #   start_period: 60s
 
 networks:
   security-stack-net:
