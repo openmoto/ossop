@@ -17,6 +17,21 @@ Complete step-by-step guide to set up OSSOP on any server.
 
 ## 🔧 Installation Steps
 
+### Option 1: Automated Setup (Recommended)
+```bash
+# Clone and run the setup script
+git clone https://github.com/openmoto/ossop.git
+cd ossop
+
+# Run the automated setup
+./setup.sh        # Linux/Mac
+setup.bat         # Windows
+```
+
+**That's it!** The script will handle everything automatically.
+
+### Option 2: Manual Setup
+
 ### Step 1: Install Docker
 
 **Ubuntu/Debian:**

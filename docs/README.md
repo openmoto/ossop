@@ -80,7 +80,15 @@ Test and train your users to recognize and report phishing attacks. Use this to:
 
 ## 🚀 Getting Started
 
-### First Time Setup
+### Super Simple Setup (2 Commands)
+```bash
+git clone https://github.com/openmoto/ossop.git
+cd ossop
+./setup.sh        # Linux/Mac
+setup.bat         # Windows
+```
+
+### Manual Setup
 1. **Follow the Setup Guide:** See [SETUP.md](SETUP.md) for complete installation instructions
 2. **SpiderFoot:** Will be built automatically by Docker Compose
 3. **Start OSSOP:** Run `docker compose up -d` in your OSSOP directory
