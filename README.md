@@ -1,4 +1,4 @@
-# 🛡️ OSSOP - Open Source Security Operations Platform
+﻿# ðŸ›¡ï¸ OSSOP - Open Source Security Operations Platform
 
 **A complete cybersecurity toolkit that runs on your computer in just 3 commands.**
 
@@ -6,7 +6,7 @@ Turn any machine into a professional security operations center with 19 integrat
 
 ---
 
-## 🚀 Quick Start (10 Minutes)
+## ðŸš€ Quick Start (10 Minutes)
 
 ### Step 1: Get the Code
 ```bash
@@ -39,7 +39,7 @@ docker compose up -d
 
 ---
 
-## 🌐 Your Security Dashboard
+## ðŸŒ Your Security Dashboard
 
 Once running, access these tools in your web browser:
 
@@ -50,26 +50,39 @@ Once running, access these tools in your web browser:
 | **MISP** | Threat intelligence | http://localhost:8082 | admin@admin.test / admin |
 | **Shuffle** | Automate responses | http://localhost:80 | Setup required*|
 | **IRIS** | Incident management | http://localhost:8080 | run `docker logs iris-web` to find creds |
+| **OpenSearch Dashboards** | Main security dashboard | http://localhost:5601 | No login required |
+| **Uptime Kuma** | Monitor all services | http://localhost:3001 | Create account on first visit |
+| **DefectDojo** | Track security issues | http://localhost:8083 | From .env file (default: admin / admin) |
+| **MISP** | Threat intelligence | http://localhost:8082 | admin@admin.test / admin |
+| **Shuffle** | Automate responses | http://localhost:5001 | admin / admin |
+| **IRIS** | Incident management | http://localhost:8080 | See Login information section |
 | **SpiderFoot** | Gather intelligence | http://localhost:5002 | admin / admin |
 | **Eramba** | Compliance tracking | http://localhost:8081 | admin / admin |
 | **Gophish** | Phishing simulation | http://localhost:3333 | admin / check logs |
 
-> **💡 Tip:** Bookmark these URLs for easy access to your security tools!
+### ðŸ”‘ Login Information
+
+- **Fixed Credentials**: MISP, Shuffle, SpiderFoot, and Eramba use the default usernames/passwords shown above
+- **From .env file**: DefectDojo uses credentials from your `.env` file (defaults to admin/admin if not set)
+- **Generated at startup**: IRIS generates a random password shown in logs - run `docker logs iris-web` to see it, it shold be in the format "You can now login with user 'administrator' and password >>> yourpassword <<< on None"
+- **First-time setup**: Uptime Kuma requires you to create an admin account on first visit
+
+> **ðŸ’¡ Tip:** Bookmark these URLs for easy access to your security tools!
 
 ---
 
-## 🛠️ What's Inside
+## ðŸ› ï¸ What's Inside
 
 ### Core Security Tools
-- **🔍 SIEM (OpenSearch)** - Collect and analyze security logs
-- **🤖 SOAR (Shuffle)** - Automate security responses  
-- **📋 Case Management (IRIS)** - Track security incidents
-- **🕷️ Threat Intel (MISP)** - Share threat information
-- **🛡️ Vulnerability Mgmt (DefectDojo)** - Find and fix security issues
-- **📊 GRC (Eramba)** - Manage compliance and risk
-- **👁️ Network Security (Suricata)** - Monitor network traffic
-- **🔎 OSINT (SpiderFoot)** - Gather public intelligence
-- **🎣 Phishing Simulation (Gophish)** - Test security awareness
+- **ðŸ” SIEM (OpenSearch)** - Collect and analyze security logs
+- **ðŸ¤– SOAR (Shuffle)** - Automate security responses  
+- **ðŸ“‹ Case Management (IRIS)** - Track security incidents
+- **ðŸ•·ï¸ Threat Intel (MISP)** - Share threat information
+- **ðŸ›¡ï¸ Vulnerability Mgmt (DefectDojo)** - Find and fix security issues
+- **ðŸ“Š GRC (Eramba)** - Manage compliance and risk
+- **ðŸ‘ï¸ Network Security (Suricata)** - Monitor network traffic
+- **ðŸ”Ž OSINT (SpiderFoot)** - Gather public intelligence
+- **ðŸŽ£ Phishing Simulation (Gophish)** - Test security awareness
 
 ### Supporting Services
 - **PostgreSQL** - Secure database storage
@@ -80,7 +93,7 @@ Once running, access these tools in your web browser:
 
 ---
 
-## 💻 Requirements
+## ðŸ’» Requirements
 
 **Minimum:**
 - 8GB RAM
@@ -95,7 +108,7 @@ Once running, access these tools in your web browser:
 
 ---
 
-## 🔧 Common Commands
+## ðŸ”§ Common Commands
 
 ```bash
 # Start all services
@@ -120,7 +133,7 @@ docker compose up -d
 
 ---
 
-## 🆘 Need Help?
+## ðŸ†˜ Need Help?
 
 ### Services Won't Start?
 1. Make sure Docker is running
@@ -164,9 +177,9 @@ docker compose up -d
 
 ---
 
-## 🔐 Security Notes
+## ðŸ” Security Notes
 
-**⚠️ Important:** This setup uses default passwords and is designed for testing and learning. 
+**âš ï¸ Important:** This setup uses default passwords and is designed for testing and learning. 
 
 **For production use:**
 1. Change ALL default passwords in the `.env` file
@@ -177,21 +190,21 @@ docker compose up -d
 
 ---
 
-## 📁 Project Structure
+## ðŸ“ Project Structure
 
 ```
 ossop/
-├── docker-compose.yml      # Main configuration
-├── .env.example           # Password settings template
-├── .env                   # Your actual passwords (create this)
-├── config/               # Service configurations
-├── scripts/              # Automation scripts
-└── data/                 # Persistent data storage
+â”œâ”€â”€ docker-compose.yml      # Main configuration
+â”œâ”€â”€ .env.example           # Password settings template
+â”œâ”€â”€ .env                   # Your actual passwords (create this)
+â”œâ”€â”€ config/               # Service configurations
+â”œâ”€â”€ scripts/              # Automation scripts
+â””â”€â”€ data/                 # Persistent data storage
 ```
 
 ---
 
-## 🤝 Contributing
+## ðŸ¤ Contributing
 
 Found a bug? Want to add a feature? 
 
@@ -202,14 +215,14 @@ Found a bug? Want to add a feature?
 
 ---
 
-## 📜 License
+## ðŸ“œ License
 
 This project is open source and available under the MIT License.
 
 ---
 
-## ⭐ Like This Project?
+## â­ Like This Project?
 
 If OSSOP helped you learn cybersecurity or saved you time, please give it a star on GitHub!
 
-**Built with ❤️ for the cybersecurity community**
+**Built with â¤ï¸ for the cybersecurity community**
