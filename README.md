@@ -6,32 +6,29 @@ Turn any machine into a professional security operations center with 19 integrat
 
 ---
 
-## ðŸš€ Quick Start (10 Minutes)
+## ðŸš€ Quick Start (5 Minutes)
 
-### Step 1: Get the Code
+### Option 1: Automated Setup (Recommended)
 ```bash
+# Clone and run the setup script
 git clone https://github.com/openmoto/ossop.git
 cd ossop
+
+# Run the automated setup
+./setup.sh        # Linux/Mac
+setup.bat         # Windows
 ```
 
-### Step 2: Set Up Your Environment
+### Option 2: Manual Setup
 ```bash
-# Copy the example settings file
+# Get the code
+git clone https://github.com/openmoto/ossop.git
+cd ossop
+
+# Create environment file
 cp .env.example .env
 
-# Edit .env with your preferred passwords (optional - defaults work fine)
-notepad .env  # Windows
-nano .env     # Linux/Mac
-```
-
-### Step 3: Build SpiderFoot (Required)
-```bash
-# SpiderFoot will be built automatically when you start the stack
-# No separate build command needed - Docker Compose handles it
-```
-
-### Step 4: Start Everything
-```bash
+# Start everything (SpiderFoot builds automatically)
 docker compose up -d
 ```
 

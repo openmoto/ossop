@@ -16,7 +16,7 @@
       memlock: { soft: -1, hard: -1 }
       nofile: { soft: 65536, hard: 65536 }
     volumes:
-      - ./data/opensearch:/usr/share/opensearch/data
+      - opensearch_data:/usr/share/opensearch/data
     ports:
       - "${OPENSEARCH_PORT_API}:9200"
       - "${OPENSEARCH_PORT_PERF}:9600"
@@ -573,6 +573,8 @@ networks:
 volumes:
   # Database volumes - managed by Docker for proper permissions and initialization
   # These are stored in Docker's volume directory but can be backed up using docker commands
+  opensearch_data:
+    driver: local
   shuffle_db_data:
     driver: local
   iris_db_data:

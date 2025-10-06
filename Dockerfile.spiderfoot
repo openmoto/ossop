@@ -35,5 +35,5 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python3 -c 'import urllib.request; urllib.request.urlopen("http://localhost:5001")' || exit 1
 
-# Run SpiderFoot
+# Run SpiderFoot as root (simpler for permissions)
 CMD ["python3", "sf.py", "-l", "0.0.0.0:5001"]
