@@ -2,11 +2,11 @@
 
 **A complete cybersecurity toolkit that runs on your computer in just 3 commands.**
 
-Turn any machine into a professional security operations center with 21 integrated security tools - no complex setup required.
+Turn any machine into a professional security operations center with 19 integrated security tools - no complex setup required.
 
 ---
 
-## 🚀 Quick Start (5 Minutes)
+## 🚀 Quick Start (10 Minutes)
 
 ### Step 1: Get the Code
 ```bash
@@ -14,7 +14,7 @@ git clone https://github.com/openmoto/ossop.git
 cd ossop
 ```
 
-### Step 2: Set Up Your Passwords
+### Step 2: Set Up Your Environment
 ```bash
 # Copy the example settings file
 cp .env.example .env
@@ -24,14 +24,18 @@ notepad .env  # Windows
 nano .env     # Linux/Mac
 ```
 
-### Step 3: Start Everything
+### Step 3: Build SpiderFoot (Required)
+```bash
+# SpiderFoot will be built automatically when you start the stack
+# No separate build command needed - Docker Compose handles it
+```
+
+### Step 4: Start Everything
 ```bash
 docker compose up -d
 ```
 
-**That's it!** Wait 2-3 minutes for everything to start, then access your tools.
-
-> **🎯 Pro Tip:** All services are automatically monitored! After setting up Uptime Kuma (first visit to http://localhost:3001), all your security tools will be monitored automatically.
+**That's it!** Wait 3-5 minutes for everything to start, then access your tools.
 
 ---
 
@@ -41,18 +45,16 @@ Once running, access these tools in your web browser:
 
 | Tool | What It Does | URL | Login |
 |------|--------------|-----|-------|
-| **OpenSearch Dashboards** | Main security dashboard | http://localhost:5601 | admin / admin |
-| **Uptime Kuma** | Monitor all services | http://localhost:3001 | Setup required* |
+| **OpenSearch Dashboards** | Main security dashboard | http://localhost:5601 | no password |
 | **DefectDojo** | Track security issues | http://localhost:8083 | admin / admin |
 | **MISP** | Threat intelligence | http://localhost:8082 | admin@admin.test / admin |
-| **Shuffle** | Automate responses | http://localhost:5001 | admin / admin |
-| **IRIS** | Incident management | http://localhost:8080 | administrator / password |
+| **Shuffle** | Automate responses | http://localhost:80 | Setup required*|
+| **IRIS** | Incident management | http://localhost:8080 | run `docker logs iris-web` to find creds |
 | **SpiderFoot** | Gather intelligence | http://localhost:5002 | admin / admin |
 | **Eramba** | Compliance tracking | http://localhost:8081 | admin / admin |
+| **Gophish** | Phishing simulation | http://localhost:3333 | admin / check logs |
 
 > **💡 Tip:** Bookmark these URLs for easy access to your security tools!
-
-> **\*Uptime Kuma Setup:** On first visit, create an admin account. All service monitors will be created automatically afterward!
 
 ---
 
@@ -67,7 +69,7 @@ Once running, access these tools in your web browser:
 - **📊 GRC (Eramba)** - Manage compliance and risk
 - **👁️ Network Security (Suricata)** - Monitor network traffic
 - **🔎 OSINT (SpiderFoot)** - Gather public intelligence
-- **📈 Monitoring (Uptime Kuma + AutoKuma)** - Automated monitoring of all services
+- **🎣 Phishing Simulation (Gophish)** - Test security awareness
 
 ### Supporting Services
 - **PostgreSQL** - Secure database storage
@@ -82,13 +84,13 @@ Once running, access these tools in your web browser:
 
 **Minimum:**
 - 8GB RAM
-- 50GB free disk space
+- 100GB free disk space
 - Docker Desktop installed
 - Windows 10+, macOS 10.15+, or Linux
 
 **Recommended:**
 - 16GB RAM
-- 100GB free disk space
+- 200GB free disk space
 - SSD storage for better performance
 
 ---
@@ -122,17 +124,39 @@ docker compose up -d
 
 ### Services Won't Start?
 1. Make sure Docker is running
-2. Check you have enough free disk space
-3. Try: `docker compose down && docker compose up -d`
+2. Check you have enough free disk space (minimum 100GB)
+3. Build SpiderFoot first: `docker build -t spiderfoot:latest https://github.com/smicallef/spiderfoot.git`
+4. Try: `docker compose down && docker compose up -d`
 
 ### Can't Access a Website?
-1. Wait 2-3 minutes after starting (services need time to initialize)
+1. Wait 3-5 minutes after starting (services need time to initialize)
 2. Check the service is running: `docker compose ps`
-3. Try refreshing your browser
+3. Try refreshing your browser or use incognito mode
 
 ### Forgot a Password?
 1. Check your `.env` file for the passwords you set
 2. Default passwords are in the table above
+3. For IRIS: `docker logs iris-web | grep password`
+4. For Gophish: `docker logs gophish | grep password`
+
+### SpiderFoot Build Issues?
+1. Make sure you have internet connection
+2. The build takes 5-10 minutes
+3. If it fails, try: `docker system prune -f` then `docker compose build spiderfoot`
+
+### OpenSearch Issues?
+1. Check disk space: `df -h`
+2. If disk is full, clean up: `docker system prune -a -f`
+3. Restart OpenSearch: `docker compose restart opensearch opensearch-dashboards`
+
+### Fresh Start (Nuclear Option)
+```bash
+# Complete reset - removes all data
+docker compose down -v
+docker system prune -a -f
+rm -rf data/
+docker compose up -d
+```
 
 ### Still Stuck?
 - Check service logs: `docker compose logs [service-name]`

@@ -9,10 +9,9 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "OPENSEARCH_JAVA_OPTS=-Xms${OPENSEARCH_JVM_HEAP} -Xmx${OPENSEARCH_JVM_HEAP}"
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
       - TZ=${TZ}
       - network.host=0.0.0.0
-      - "plugins.security.ssl.http.enabled=false"
+      - "plugins.security.disabled=true"
     ulimits:
       memlock: { soft: -1, hard: -1 }
       nofile: { soft: 65536, hard: 65536 }
@@ -46,8 +45,6 @@ services:
       opensearch:
         condition: service_healthy
     restart: unless-stopped
-    labels:
-      - "kuma.__web={\"name\":\"OpenSearch Dashboards\",\"url\":\"http://localhost:5601\"}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
       interval: 30s
@@ -67,7 +64,7 @@ services:
       - ./config/fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
       - ./data/wazuh/logs/alerts:/var/log/wazuh-alerts:ro
       - ./data/suricata/logs:/var/log/suricata:ro
-      - fluent_bit_db:/fluent-bit/db
+      - ./data/fluent-bit:/fluent-bit/db
     ports:
       - "2020:2020"  # HTTP monitoring port
     networks:
@@ -275,14 +272,14 @@ services:
 
   spiderfoot:
     build:
-      context: https://github.com/smicallef/spiderfoot.git
-    image: spiderfoot:latest
+      context: .
+      dockerfile: Dockerfile.spiderfoot
     container_name: ${SPIDERFOOT_HOSTNAME}
     hostname: ${SPIDERFOOT_HOSTNAME}
     ports:
       - "${SPIDERFOOT_PORT}:5001"
     volumes:
-      - spiderfoot_data:/var/lib/spiderfoot
+      - ./data/spiderfoot:/var/lib/spiderfoot
     networks:
       - security-stack-net
     restart: unless-stopped
@@ -395,6 +392,8 @@ services:
     container_name: ${MISP_REDIS_HOSTNAME}
     hostname: ${MISP_REDIS_HOSTNAME}
     command: --requirepass '${MISP_REDIS_PASSWORD}'
+    volumes:
+      - misp_redis_data:/data
     networks:
       - security-stack-net
     restart: unless-stopped
@@ -410,6 +409,11 @@ services:
     hostname: ${MISP_HOSTNAME}
     ports:
       - "${MISP_PORT}:80"
+    volumes:
+      - ./data/misp-web/logs:/var/www/MISP/app/tmp/logs
+      - ./data/misp-web/files:/var/www/MISP/app/files
+      - ./data/misp-web/attachments:/var/www/MISP/app/attachments
+      - ./data/misp-web/gnupg:/var/www/MISP/.gnupg
     networks:
       - security-stack-net
     depends_on:
@@ -471,11 +475,9 @@ services:
     depends_on:
       - uwsgi
     volumes:
-      - defectdojo_static:/app/static:ro
-      - defectdojo_media:/app/media:ro
+      - ./data/defectdojo-static:/app/static:ro
+      - ./data/defectdojo-media:/app/media:ro
     restart: unless-stopped
-    labels:
-      - "kuma.__web={\"name\":\"DefectDojo\",\"url\":\"http://localhost:8083\"}"
 
   uwsgi:
     image: defectdojo/defectdojo-django:latest
@@ -502,8 +504,8 @@ services:
       - DD_MEDIA_ROOT=/app/media
     volumes:
       - ./scripts/defectdojo-init.sh:/init.sh:ro
-      - defectdojo_static:/app/static
-      - defectdojo_media:/app/media
+      - ./data/defectdojo-static:/app/static
+      - ./data/defectdojo-media:/app/media
     user: root
     entrypoint: ["sh", "-c"]
     command: ["bash /init.sh && exec /entrypoint-uwsgi.sh"]
@@ -514,72 +516,46 @@ services:
       timeout: 10s
       retries: 5
       start_period: 180s
-
-  uptime-kuma:
-    image: louislam/uptime-kuma:1
-    container_name: uptime-kuma
-    hostname: uptime-kuma
+      
+  gophish:
+    image: gophish/gophish:0.12.1
+    container_name: ${GOPHISH_HOSTNAME:-gophish}
+    hostname: ${GOPHISH_HOSTNAME:-gophish}
     ports:
-      - "${UPTIME_KUMA_PORT}:3001"
-    volumes:
-      - uptime_kuma_data:/app/data
+      - "${GOPHISH_ADMIN_PORT:-3333}:3333"  # Admin UI Port
+      - "${GOPHISH_PHISH_PORT:-8084}:80"    # Phishing Server Port
     environment:
-      - UPTIME_KUMA_DISABLE_FRAME_SAMEORIGIN=true
+      - GOPHISH_INITIAL_ADMIN_PASSWORD=gophish
+    volumes:
+      - ./data/gophish:/opt/gophish/database
     networks:
       - security-stack-net
     restart: unless-stopped
+    working_dir: /opt/gophish
+    entrypoint: ["./gophish"]
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3001 || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3333 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
       start_period: 60s
-    labels:
-      - "kuma.__web={\"name\":\"Uptime Kuma\",\"url\":\"http://localhost:3001\"}"
-
-  autokuma:
-    image: ghcr.io/bigboot/autokuma:latest
-    container_name: autokuma
-    hostname: autokuma
-    environment:
-      - AUTOKUMA__KUMA__URL=http://uptime-kuma:3001
-      - AUTOKUMA__TAG_NAME=OSSOP-AutoMonitor
-      - AUTOKUMA__TAG_COLOR=#42C0FB
-      - AUTOKUMA__STATIC_MONITORS=/monitors
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/autokuma:/monitors:ro
-    networks:
-      - security-stack-net
-    depends_on:
-      - uptime-kuma
-    restart: unless-stopped
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 5
-    #   start_period: 60s
 
 networks:
   security-stack-net:
     driver: bridge
 
 volumes:
+  # Database volumes - managed by Docker for proper permissions and initialization
+  # These are stored in Docker's volume directory but can be backed up using docker commands
   shuffle_db_data:
     driver: local
   iris_db_data:
     driver: local
-  misp_db_data:
-    driver: local
   defectdojo_db_data:
     driver: local
-  spiderfoot_data:
+  misp_db_data:
     driver: local
-  uptime_kuma_data:
+  misp_redis_data:
     driver: local
-  defectdojo_static:
-    driver: local
-  defectdojo_media:
-    driver: local
-  fluent_bit_db:
-    driver: local
+
 

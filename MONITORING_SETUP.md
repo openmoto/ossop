@@ -9,9 +9,8 @@ This guide helps you set up monitoring dashboards to see what's happening in you
    docker compose up -d
    ```
 
-2. **Access Uptime Kuma** at http://localhost:3001
-   - Create an admin account
-   - Add monitors for your services using the URLs from the main README
+2. **Set up your own monitoring solution** 
+   - Consider alternatives like Prometheus/Grafana for monitoring your services
 
 3. **Access OpenSearch Dashboards** at http://localhost:5601
    - Login: admin / admin
@@ -20,9 +19,8 @@ This guide helps you set up monitoring dashboards to see what's happening in you
 
 ## What Gets Monitored
 
-- **Service Health**: All 21 services are monitored for uptime
 - **Security Logs**: Wazuh and Suricata logs are collected
-- **System Metrics**: Container resource usage
+- **System Metrics**: Container resource usage  
 - **Network Traffic**: Intrusion detection alerts
 
 ## Creating Custom Dashboards
@@ -35,12 +33,12 @@ This guide helps you set up monitoring dashboards to see what's happening in you
 3. Go to "Visualize" to create charts
 4. Combine charts into dashboards
 
-### In Uptime Kuma:
-1. Click "Add New Monitor"
-2. Choose "HTTP(s)" type
-3. Enter the service URL
-4. Set check interval (default: 60 seconds)
-5. Add notification methods (email, Slack, etc.)
+### For External Monitoring:
+1. Set up your preferred monitoring solution
+2. Configure health checks for your services
+3. Use the service URLs from the main README
+4. Set appropriate check intervals
+5. Configure alerting as needed
 
 ## Troubleshooting
 
@@ -52,16 +50,15 @@ This guide helps you set up monitoring dashboards to see what's happening in you
 - Wait 2-3 minutes for services to fully start
 - Check OpenSearch is healthy: `docker compose ps opensearch`
 
-**Monitors failing?**
+**Services not responding?**
 - Verify the service URLs are correct
 - Check if the services are actually running
-- Look at the specific error messages in Uptime Kuma
+- Review service logs for specific errors
 
 ## Advanced Configuration
 
 For advanced monitoring setups, check the configuration files in:
 - `config/fluent-bit/` - Log processing configuration
-- `scripts/setup-monitoring.sh` - Automated setup script
 
 ## Need Help?
 
