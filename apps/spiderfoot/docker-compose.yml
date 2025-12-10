@@ -1,0 +1,26 @@
+services:
+  spiderfoot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${SPIDERFOOT_HOSTNAME}
+    hostname: ${SPIDERFOOT_HOSTNAME}
+    ports:
+      - "${SPIDERFOOT_PORT}:5001"
+    volumes:
+      - ../../data/spiderfoot:/var/lib/spiderfoot
+    networks:
+      - ossop-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:5001\")' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    env_file:
+      - ../../.env
+
+networks:
+  ossop-network:
+    external: true

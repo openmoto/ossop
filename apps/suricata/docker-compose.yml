@@ -1,0 +1,22 @@
+services:
+  suricata:
+    image: jasonish/suricata:${SURICATA_VERSION}
+    container_name: ${SURICATA_HOSTNAME}
+    hostname: ${SURICATA_HOSTNAME}
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - ../../config/suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ../../data/suricata/logs:/var/log/suricata:rw
+    command: suricata -c /etc/suricata/suricata.yaml -i eth0
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+    # Note: host networking mode ignores 'networks' key
+
+    # networks:
+    #   ossop-network:
+    #     external: true

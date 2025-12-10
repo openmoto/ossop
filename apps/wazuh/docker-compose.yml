@@ -1,0 +1,36 @@
+services:
+  wazuh-manager:
+    image: wazuh/wazuh-manager:${WAZUH_MANAGER_VERSION}
+    container_name: ${WAZUH_MANAGER_HOSTNAME}
+    hostname: ${WAZUH_MANAGER_HOSTNAME}
+    # Removed strict dependency on opensearch for startup, but it still needs it for operation.
+    # Logic in app should handle retry, or user starts opensearch first.
+    environment:
+      - FILEBEAT_ENABLE=no
+      - INDEXER_URL=http://${OPENSEARCH_HOSTNAME}:${OPENSEARCH_PORT_API}
+    ports:
+      - "${WAZUH_API_PORT}:55000"
+      - "${WAZUH_AGENT_CONN_PORT}:1514/udp"
+      - "${WAZUH_AGENT_REG_PORT}:1515"
+    volumes:
+      - ../../data/wazuh/etc:/var/ossec/etc
+      - ../../data/wazuh/logs:/var/ossec/logs
+      - ../../data/wazuh/queue:/var/ossec/queue
+      - ../../data/wazuh/wodles:/var/ossec/wodles
+      - ../../data/wazuh/integrations:/var/ossec/integrations
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ossop-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "/var/ossec/bin/wazuh-control status | grep -q 'wazuh-apid is running'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    env_file:
+      - ../../.env
+
+networks:
+  ossop-network:
+    external: true

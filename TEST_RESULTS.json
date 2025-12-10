@@ -1,0 +1,44 @@
+[
+    {
+        "service": "OpenSearch Dashboards",
+        "url": "http://localhost:5601",
+        "status": "PASS",
+        "notes": "Loaded successfully"
+    },
+    {
+        "service": "DefectDojo",
+        "url": "http://localhost:8083",
+        "status": "PASS",
+        "notes": "Login page loaded"
+    },
+    {
+        "service": "Shuffle",
+        "url": "http://localhost:80",
+        "status": "PASS",
+        "notes": "Loaded frontend"
+    },
+    {
+        "service": "IRIS",
+        "url": "http://localhost:8080",
+        "status": "PASS",
+        "notes": "Login page loaded"
+    },
+    {
+        "service": "SpiderFoot",
+        "url": "http://localhost:5002",
+        "status": "PASS",
+        "notes": "Dashboard loaded"
+    },
+    {
+        "service": "Eramba",
+        "url": "http://localhost:8081",
+        "status": "FAIL",
+        "notes": "ERR_EMPTY_RESPONSE. Container health check passed, but web server may need more time or config."
+    },
+    {
+        "service": "Gophish",
+        "url": "https://localhost:3333",
+        "status": "WARN",
+        "notes": "ERR_CERT_AUTHORITY_INVALID. Service is running but uses self-signed certs. Requires manual browser exception."
+    }
+]

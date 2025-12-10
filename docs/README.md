@@ -69,7 +69,7 @@ Manage business risks and follow security regulations and standards. Use this to
 
 **Access:** http://localhost:8081 (admin / admin)
 
-#### 🎣 [Gophish](gophish.md) - Phishing Simulation & Training
+#### 🎣 [Gophish](gophish-guide.md) - Phishing Simulation & Training
 Test and train your users to recognize and report phishing attacks. Use this to:
 - Create realistic phishing email campaigns
 - Test employee security awareness
@@ -77,6 +77,20 @@ Test and train your users to recognize and report phishing attacks. Use this to:
 - Provide immediate security awareness training
 
 **Access:** http://localhost:3333 (admin / check logs for initial password)
+
+📖 **[Complete Gophish Guide](gophish-guide.md)** - Everything in one document:
+- Simple step-by-step instructions
+- Local and Azure cloud setup
+- Managing employee lists (manual and automated)
+- Creating phishing tests
+- Reading results and reporting
+- Automation with n8n and databases
+- Advanced features (Gmail API, custom domains)
+- Troubleshooting guide
+
+⚠️ **Important**: Gophish has two types of "users":
+1. **Admin Users** (Settings → Users) - Your security team who log into Gophish
+2. **Target Recipients** (Users & Groups → Groups) - Employees you test (just email addresses, no accounts needed)
 
 ## 🚀 Getting Started
 

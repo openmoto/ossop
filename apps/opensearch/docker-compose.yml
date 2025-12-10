@@ -1,0 +1,91 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    container_name: ${OPENSEARCH_HOSTNAME}
+    hostname: ${OPENSEARCH_HOSTNAME}
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=${OPENSEARCH_HOSTNAME}-node1
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms${OPENSEARCH_JVM_HEAP} -Xmx${OPENSEARCH_JVM_HEAP}"
+      - TZ=${TZ}
+      - network.host=0.0.0.0
+      - "plugins.security.disabled=true"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile: { soft: 65536, hard: 65536 }
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "${OPENSEARCH_PORT_API}:9200"
+      - "${OPENSEARCH_PORT_PERF}:9600"
+    networks:
+      - ossop-network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
+    container_name: ${OPENSEARCH_DASHBOARDS_HOSTNAME}
+    hostname: ${OPENSEARCH_DASHBOARDS_HOSTNAME}
+    ports:
+      - "${OPENSEARCH_DASHBOARDS_PORT}:5601"
+    environment:
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    volumes:
+      - ../../config/opensearch-dashboards/opensearch_dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
+    networks:
+      - ossop-network
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5601/api/status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    env_file:
+      - ../../.env
+
+  fluent-bit:
+    image: fluent/fluent-bit:3.1.9
+    container_name: fluent-bit
+    environment:
+      - OPENSEARCH_HOSTNAME=${OPENSEARCH_HOSTNAME}
+      - OPENSEARCH_PORT_API=${OPENSEARCH_PORT_API}
+      - HOSTNAME=${HOSTNAME}
+    volumes:
+      - ../../config/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ../../config/fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+      - ../../data/wazuh/logs/alerts:/var/log/wazuh-alerts:ro
+      - ../../data/suricata/logs:/var/log/suricata:ro
+      - ../../data/fluent-bit:/fluent-bit/db
+    ports:
+      - "2020:2020" # HTTP monitoring port
+    networks:
+      - ossop-network
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+
+networks:
+  ossop-network:
+    external: true
+
+volumes:
+  opensearch_data:
+    name: ossop_opensearch_data
+    external: true

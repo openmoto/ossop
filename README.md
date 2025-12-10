@@ -1,35 +1,11 @@
-﻿# ðŸ›¡ï¸ OSSOP - Open Source Security Operations Platform
+﻿cp .env.example .env
 
-**A complete cybersecurity toolkit that runs on your computer in just 3 commands.**
+# Start everything
+# Windows (PowerShell)
+./scripts/start-all.ps1
 
-Turn any machine into a professional security operations center with 19 integrated security tools - no complex setup required.
-
----
-
-## ðŸš€ Quick Start (5 Minutes)
-
-### Option 1: Automated Setup (Recommended)
-```bash
-# Clone and run the setup script
-git clone https://github.com/openmoto/ossop.git
-cd ossop
-
-# Run the automated setup
-./setup.sh        # Linux/Mac
-setup.bat         # Windows
-```
-
-### Option 2: Manual Setup
-```bash
-# Get the code
-git clone https://github.com/openmoto/ossop.git
-cd ossop
-
-# Create environment file
-cp .env.example .env
-
-# Start everything (SpiderFoot builds automatically)
-docker compose up -d
+# Linux/Mac (Bash)
+./scripts/start-all.sh
 ```
 
 **That's it!** Wait 3-5 minutes for everything to start, then access your tools.
@@ -56,6 +32,17 @@ Once running, access these tools in your web browser:
 | **SpiderFoot** | Gather intelligence | http://localhost:5002 | admin / admin |
 | **Eramba** | Compliance tracking | http://localhost:8081 | admin / admin |
 | **Gophish** | Phishing simulation | http://localhost:3333 | admin / check logs |
+
+> 📖 **[Complete Gophish Guide](docs/gophish-guide.md)** - Everything you need in one simple document:
+> - Setup (local and Azure cloud)
+> - Managing employees (manual and automated)
+> - Creating phishing tests
+> - Automation and advanced features
+> - Written at grade 5 reading level (simple and clear)
+> 
+> ⚠️ **Important**: Two types of "users" in Gophish:
+> 1. **Admin Users** (Settings → Users) = Your security team
+> 2. **Targets** (Users & Groups) = Employees you test (email addresses only, no accounts)
 
 ### ðŸ”‘ Login Information
 
@@ -181,28 +168,6 @@ docker compose up -d
 **For production use:**
 1. Change ALL default passwords in the `.env` file
 2. Use strong, unique passwords for each service  
-3. Set up proper firewall rules
-4. Enable HTTPS with real SSL certificates
-5. Regularly update all services
-
----
-
-## ðŸ“ Project Structure
-
-```
-ossop/
-â”œâ”€â”€ docker-compose.yml      # Main configuration
-â”œâ”€â”€ .env.example           # Password settings template
-â”œâ”€â”€ .env                   # Your actual passwords (create this)
-â”œâ”€â”€ config/               # Service configurations
-â”œâ”€â”€ scripts/              # Automation scripts
-â””â”€â”€ data/                 # Persistent data storage
-```
-
----
-
-## ðŸ¤ Contributing
-
 Found a bug? Want to add a feature? 
 
 1. Fork this repository

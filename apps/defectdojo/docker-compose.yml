@@ -1,0 +1,87 @@
+services:
+  defectdojo-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: ${DEFECTDOJO_DB_HOSTNAME}
+    hostname: ${DEFECTDOJO_DB_HOSTNAME}
+    environment:
+      - POSTGRES_USER=${DEFECTDOJO_DB_USER}
+      - POSTGRES_DB=${DEFECTDOJO_DB_NAME}
+      - POSTGRES_PASSWORD=${DEFECTDOJO_DB_PASSWORD}
+    volumes:
+      - defectdojo_db_data:/var/lib/postgresql/data
+    networks:
+      - ossop-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DEFECTDOJO_DB_USER} -d ${DEFECTDOJO_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - ../../.env
+
+  nginx:
+    image: defectdojo/defectdojo-nginx:latest
+    container_name: defectdojo-nginx
+    hostname: nginx
+    ports:
+      - "${DEFECTDOJO_PORT}:8080"
+    networks:
+      - ossop-network
+    depends_on:
+      - uwsgi
+    volumes:
+      - ../../data/defectdojo-static:/app/static:ro
+      - ../../data/defectdojo-media:/app/media:ro
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+
+  uwsgi:
+    image: defectdojo/defectdojo-django:latest
+    container_name: defectdojo-app
+    hostname: uwsgi
+    expose:
+      - "3031"
+    networks:
+      - ossop-network
+    depends_on:
+      defectdojo-db:
+        condition: service_healthy
+    environment:
+      - DD_DATABASE_URL=postgresql://${DEFECTDOJO_DB_USER}:${DEFECTDOJO_DB_PASSWORD}@${DEFECTDOJO_DB_HOSTNAME}:5432/${DEFECTDOJO_DB_NAME}
+      - DD_SECRET_KEY=${DEFECTDOJO_SECRET_KEY}
+      - DD_CELERY_BROKER_URL=redis://${MISP_REDIS_HOSTNAME}:6379/1
+      - DD_ADMIN_USER=${DEFECTDOJO_ADMIN_USER}
+      - DD_ADMIN_MAIL=${DEFECTDOJO_ADMIN_EMAIL}
+      - DD_ADMIN_PASSWORD=${DEFECTDOJO_ADMIN_PASSWORD}
+      - DD_ALLOWED_HOSTS=localhost,127.0.0.1,${DEFECTDOJO_HOSTNAME}
+      - DD_DEBUG=False
+      - DD_INITIALIZE=true
+      - DD_STATIC_ROOT=/app/static
+      - DD_MEDIA_ROOT=/app/media
+    volumes:
+      - ../../scripts/defectdojo-init.sh:/init.sh:ro
+      - ../../data/defectdojo-static:/app/static
+      - ../../data/defectdojo-media:/app/media
+    user: root
+    entrypoint: [ "sh", "-c" ]
+    command: [ "bash /init.sh && exec /entrypoint-uwsgi.sh" ]
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8081\")' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+    env_file:
+      - ../../.env
+
+networks:
+  ossop-network:
+    external: true
+
+volumes:
+  defectdojo_db_data:
+    name: ossop_defectdojo_db_data
+    external: true

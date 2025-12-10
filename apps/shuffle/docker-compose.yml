@@ -1,0 +1,80 @@
+services:
+  shuffle-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: ${SHUFFLE_DB_HOSTNAME}
+    hostname: ${SHUFFLE_DB_HOSTNAME}
+    environment:
+      - POSTGRES_USER=${SHUFFLE_DB_USER}
+      - POSTGRES_PASSWORD=${SHUFFLE_DB_PASSWORD}
+      - POSTGRES_DB=${SHUFFLE_DB_NAME}
+    volumes:
+      - shuffle_db_data:/var/lib/postgresql/data
+    networks:
+      - ossop-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${SHUFFLE_DB_USER} -d ${SHUFFLE_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - ../../.env
+
+  shuffle-backend:
+    image: ghcr.io/shuffle/shuffle-backend:${SHUFFLE_VERSION}
+    container_name: ${SHUFFLE_BACKEND_HOSTNAME}
+    hostname: ${SHUFFLE_BACKEND_HOSTNAME}
+    user: root
+    ports:
+      - "${SHUFFLE_BACKEND_PORT}:5001"
+    networks:
+      - ossop-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ../../.env
+    environment:
+      - SHUFFLE_DB_HOST=${SHUFFLE_DB_HOSTNAME}
+      - SHUFFLE_OPENSEARCH_URL=http://opensearch:9200
+      - SHUFFLE_OPENSEARCH_USERNAME=admin
+      - SHUFFLE_OPENSEARCH_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      - SHUFFLE_OPENSEARCH_CERTIFICATE_VERIFICATION=false
+    restart: unless-stopped
+    depends_on:
+      shuffle-db:
+        condition: service_healthy
+
+  shuffle-frontend:
+    image: ghcr.io/shuffle/shuffle-frontend:${SHUFFLE_VERSION}
+    container_name: ${SHUFFLE_FRONTEND_HOSTNAME}
+    hostname: ${SHUFFLE_FRONTEND_HOSTNAME}
+    ports:
+      - "${SHUFFLE_FRONTEND_PORT:-8085}:80"
+    networks:
+      - ossop-network
+    env_file:
+      - ../../.env
+    restart: unless-stopped
+    depends_on:
+      - shuffle-backend
+
+  shuffle-orborus:
+    image: ghcr.io/shuffle/shuffle-orborus:${SHUFFLE_VERSION}
+    container_name: ${SHUFFLE_ORBORUS_HOSTNAME}
+    hostname: ${SHUFFLE_ORBORUS_HOSTNAME}
+    networks:
+      - ossop-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ../../.env
+    restart: unless-stopped
+
+networks:
+  ossop-network:
+    external: true
+
+volumes:
+  shuffle_db_data:
+    name: ossop_shuffle_db_data
+    external: true

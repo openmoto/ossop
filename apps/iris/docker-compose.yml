@@ -1,0 +1,64 @@
+services:
+  iris-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: ${IRIS_DB_HOSTNAME}
+    hostname: ${IRIS_DB_HOSTNAME}
+    environment:
+      - POSTGRES_USER=${IRIS_DB_USER}
+      - POSTGRES_DB=${IRIS_DB_NAME}
+      - POSTGRES_PASSWORD=${IRIS_DB_PASSWORD}
+    volumes:
+      - iris_db_data:/var/lib/postgresql/data
+    networks:
+      - ossop-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${IRIS_DB_USER} -d ${IRIS_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - ../../.env
+
+  iris-web:
+    image: ghcr.io/dfir-iris/iriswebapp_app:${IRIS_VERSION}
+    container_name: ${IRIS_HOSTNAME}
+    hostname: ${IRIS_HOSTNAME}
+    depends_on:
+      iris-db:
+        condition: service_healthy
+    ports:
+      - "${IRIS_PORT}:8000"
+    environment:
+      - POSTGRES_USER=${IRIS_DB_USER}
+      - POSTGRES_PASSWORD=${IRIS_DB_PASSWORD}
+      - POSTGRES_ADMIN_USER=${IRIS_DB_USER}
+      - POSTGRES_ADMIN_PASSWORD=${IRIS_DB_PASSWORD}
+      - POSTGRES_DB=${IRIS_DB_NAME}
+      - POSTGRES_SERVER=${IRIS_DB_HOSTNAME}
+      - POSTGRES_PORT=5432
+      - IRIS_SECRET_KEY=${IRIS_SECRET_KEY}
+      - IRIS_SECURITY_PASSWORD_SALT=randomly_generated_salt_change_me
+      - IRIS_UPSTREAM_SERVER=0.0.0.0
+      - IRIS_UPSTREAM_PORT=8000
+    networks:
+      - ossop-network
+    restart: unless-stopped
+    command: [ "./iris-entrypoint.sh", "iriswebapp" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8000 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    env_file:
+      - ../../.env
+
+networks:
+  ossop-network:
+    external: true
+
+volumes:
+  iris_db_data:
+    name: ossop_iris_db_data
+    external: true
